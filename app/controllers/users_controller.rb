@@ -7,6 +7,7 @@ class UsersController < ApplicationController
   skip_before_filter :authorize, :only => :extlogin
   after_filter       :update_activity_time, :only => :login
   skip_before_filter :update_admin_flag, :only => :update
+  before_filter :verify_request, :only => :logout
 
   def index
     @users = User.authorized(:view_users).except_hidden.search_for(params[:search], :order => params[:order]).includes(:auth_source).paginate(:page => params[:page])
@@ -127,6 +128,10 @@ class UsersController < ApplicationController
     set_current_taxonomies(user, {:session => session})
     TopbarSweeper.expire_cache(self)
     redirect_to (uri || hosts_path)
+  end
+
+  def verify_request
+    render(:status => 403) unless form_authenticity_token == params[:token]
   end
 
 end

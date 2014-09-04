@@ -27,6 +27,10 @@ module ApplicationHelper
     end
   end
 
+  def form_authenticity_token
+    session[:_csrf_token] ||= SecureRandom.base64(32)
+  end
+
   protected
   def contract model
     model.to_label

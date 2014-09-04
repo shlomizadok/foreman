@@ -14,7 +14,7 @@ module Menu
 
       Manager.map :user_menu do |menu|
         menu.item :logout,               :caption => N_('Sign out'),
-                  :url_hash => {:controller => '/users', :action => 'logout'}
+                  :url_hash => {:controller => '/users', :action => 'logout', :token => Proc.new { form_authenticity_token }}
         menu.item :my_account,           :caption => N_('My account'),
                   :url_hash => {:controller => '/users', :action => 'edit', :id => Proc.new { User.current.id }}
       end

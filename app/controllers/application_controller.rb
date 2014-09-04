@@ -40,6 +40,10 @@ class ApplicationController < ActionController::Base
     request.format.json? or request.format.yaml?
   end
 
+  def form_authenticity_token
+    session[:_csrf_token] ||= SecureRandom.base64(32)
+  end
+
   protected
 
   # Authorize the user for the requested action
