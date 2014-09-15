@@ -1,0 +1,9 @@
+<li class="list-group-item">
+  <small>
+    <%= icon_text(status.passed ? 'ok' : 'remove', status.message) %>
+    <% if status.error %>
+      <br />
+      <code><%= status.error %></code>
+    <% end %>
+  </small>
+</li>

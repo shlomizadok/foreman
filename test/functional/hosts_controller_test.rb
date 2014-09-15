@@ -802,6 +802,15 @@ class HostsControllerTest < ActionController::TestCase
     refute host.compute_resource_id
   end
 
+  test '#review_before_build' do
+    get :review_before_build, {:id => @host.name}, set_session_user
+    assert_response :success
+    assert_template 'review_before_build'
+    assert_select 'ul.list-group' do
+      assert_select 'li.list-group-item'
+    end
+  end
+
   private
   def initialize_host
     User.current = users(:admin)

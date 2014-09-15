@@ -1,6 +1,7 @@
 class Host::Managed < Host::Base
   include ReportCommon
   include Hostext::Search
+  include UnattendedHelper
 
   PROVISION_METHODS = %w[build image]
 
@@ -791,6 +792,75 @@ class Host::Managed < Host::Base
 
   def validate_media?
     managed && pxe_build? && build?
+  end
+
+  def available_template_kinds(provisioning = nil)
+    kinds = if provisioning == 'image'
+              cr     = ComputeResource.find_by_id(self.compute_resource_id)
+              images = cr.try(:images)
+              if images.nil?
+                [TemplateKind.find_by_name('finish')]
+              else
+                uuid       = self.compute_attributes.cr.image_param_name
+                image_kind = images.find_by_uuid(uuid).try(:user_data) ? 'user_data' : 'finish'
+                [TemplateKind.find_by_name(image_kind)]
+              end
+            else
+              TemplateKind.all
+            end
+
+    templates = kinds.map do |kind|
+      ConfigTemplate.find_template({:kind => kind.name,
+                                    :operatingsystem_id => self.operatingsystem_id,
+                                    :hostgroup_id => self.hostgroup_id,
+                                    :environment_id => self.environment_id
+                                   })
+    end.compact
+  end
+
+  def templates_status
+    statuses = []
+    if self.available_template_kinds.empty?
+      statuses << StatusReport.new(false, _('No templates found for this host.'))
+      return {:successful_render => false, :statuses => statuses}
+    end
+    self.available_template_kinds.each do | used_template |
+      begin
+        # Set instance variable for unattended_render function
+        @host = self
+        valid_template = unattended_render(used_template.template)
+        if valid_template.blank?
+          statuses << StatusReport.new(false, _('Template %s is empty.') % used_template.name )
+        else
+          statuses << StatusReport.new(true, _('Template %s rendered successfuly.') % used_template.name )
+        end
+      rescue => error
+        statuses << StatusReport.new(false, _('Cannot parse %s.') % used_template.name, error )
+      end
+    end
+    successful_render = (statuses.map(&:passed).include? false) ? false : true
+    {:successful_render => successful_render, :statuses => statuses}
+  end
+
+  def smart_proxies_status
+    statuses = []
+    if self.smart_proxies.empty?
+      statuses << StatusReport.new(false, _('No smart proxies found.'))
+      return {:smart_proxies_available => false, :statuses => statuses}
+    end
+    self.smart_proxies.each do | smart_proxy |
+      begin
+        if ProxyAPI::Features.new({:url => smart_proxy.url}).features.empty?
+          statuses << StatusReport.new(false, _('No features found on %s.') % smart_proxy )
+        else
+          statuses << StatusReport.new(true, _('%s is available.') % smart_proxy )
+        end
+      rescue => error
+        statuses << StatusReport.new(false, _('Error connecting to %s.') % smart_proxy, error )
+      end
+    end
+    smart_proxies_available = (statuses.map(&:passed).include? false) ? false : true
+    {:smart_proxies_available => smart_proxies_available, :statuses => statuses}
   end
 
   private

@@ -4,16 +4,16 @@ module Foreman
   module Renderer
 
     ALLOWED_HELPERS = [ :foreman_url, :grub_pass, :snippet, :snippets,
-			:snippet_if_exists, :ks_console, :root_pass,
-			:multiboot, :jumpstart_path, :install_path, :miniroot,
-			:media_path, :param_true?, :param_false?, :match, :indent ]
+                       :snippet_if_exists, :ks_console, :root_pass,
+                       :multiboot, :jumpstart_path, :install_path, :miniroot,
+                       :media_path, :param_true?, :param_false?, :match, :indent ]
 
     ALLOWED_VARIABLES = [ :arch, :host, :osver, :mediapath, :mediaserver, :static,
                           :repos, :dynamic, :kernel, :initrd,
                           :preseed_server, :preseed_path, :provisioning_type ]
 
 
-    def render_safe template, allowed_methods = [], allowed_vars = {}
+    def render_safe(template, allowed_methods = [], allowed_vars = {})
 
       if Setting[:safemode_render]
         box = Safemode::Box.new self, allowed_methods
@@ -46,7 +46,7 @@ module Foreman
       end
     end
 
-    def snippet name, options = {}
+    def snippet(name, options = {})
       if (template = ConfigTemplate.where(:name => name, :snippet => true).first)
         logger.debug "rendering snippet #{template.name}"
         begin
@@ -63,7 +63,7 @@ module Foreman
       end
     end
 
-    def snippet_if_exists name
+    def snippet_if_exists(name)
       snippet name, :silent => true
     end
 
@@ -73,15 +73,15 @@ module Foreman
       prefix + text.gsub(/\n/, "\n#{prefix}")
     end
 
-    def unattended_render template
+    def unattended_render(template)
       allowed_variables = ALLOWED_VARIABLES.reduce({}) do |mapping, var|
-         mapping.update(var => instance_variable_get("@#{var}"))
+        mapping.update(var => instance_variable_get("@#{var}"))
       end
       render_safe template, ALLOWED_HELPERS, allowed_variables
     end
     alias_method :pxe_render, :unattended_render
 
-    def unattended_render_to_temp_file content, prefix = id.to_s, options = {}
+    def unattended_render_to_temp_file(content, prefix = id.to_s, options = {})
       file = ""
       Tempfile.open(prefix, Rails.root.join('tmp') ) do |f|
         f.print(unattended_render(content))

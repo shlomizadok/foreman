@@ -1,0 +1,56 @@
+<div class="modal-dialog">
+  <div class="modal-content">
+    <div class="modal-header">
+      <%= alert_close("modal") %>
+      <h4 class="modal-title"><%= _('Review build status for %s.') % @host.name %></h4>
+
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-<%= @host_build_status  %>">
+        <p>
+          <b>
+            <% if @host_build_status == 'success' %>
+                <%= icon_text('ok', _("Build checks passed, ready to build")) %>
+            <% else %>
+                <%= icon_text('remove', _("The following errors may prevent a successful build:")) %>
+            <% end %>
+          </b>
+        </p>
+        <p>
+          <p><%= icon_text(@host.templates_status[:successful_render] ? 'ok' : 'remove', _('Templates')) %></p>
+          <ul class="list-group">
+          <% @host.templates_status[:statuses].each do | status | %>
+            <%= render :partial => "hosts/review_status", :locals => { :status => status } %>
+          <% end %>
+          </ul>
+        </p>
+        <p>
+          <p><%= icon_text(@host.smart_proxies_status[:smart_proxies_available] ? 'ok' : 'remove', _('Smart proxies')) %></p>
+          <ul class="list-group">
+          <% @host.smart_proxies_status[:statuses].each do | status | %>
+            <%= render :partial => "hosts/review_status", :locals => { :status => status } %>
+          <% end %>
+          </ul>
+        </p>
+      </div>
+      <div class="alert alert-warning">
+        <b><%= _("Rebuild %s on next reboot?")  % @host %></b><br />
+        <%= _("This will delete all of the host's stored facts and reports.")  %>
+      </div>
+
+      <%= form_for :build, :method => :put,
+                   :url => hash_for_setBuild_host_path(:id => @host).merge(:auth_object => @host, :permission => 'build_hosts'),
+                   :html => { :id => "build_form" } do | form |
+      %>
+        <div>
+          <%= check_box_tag(:build_reboot, true, false) %> <%= _("Reboot now?") %>
+        </div>
+        <div class="modal-footer">
+          <%= modal_close %>
+          <%= review_build_button(form, @host_build_status) %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+

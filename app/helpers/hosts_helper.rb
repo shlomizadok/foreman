@@ -223,8 +223,8 @@ module HostsHelper
     cr.images.where(:architecture_id => arch, :operatingsystem_id => os)
   end
 
-  def state s
-    s ? ' ' + _("Off") : ' ' + _("On")
+  def state(status)
+    status ? ' ' + _("Off") : ' ' + _("On")
   end
 
   def host_title_actions(host)
@@ -237,10 +237,14 @@ module HostsHelper
                                     :disabled => host.can_be_built?,
                                     :title    => _("Cancel build request for this host"))
             else
-              link_to_if_authorized(_("Build"), hash_for_setBuild_host_path(:id => host).merge(:auth_object => host, :permission => 'build_hosts'),
+              link_to_if_authorized(_("Build"), hash_for_review_before_build_host_path(:id => host).merge(:auth_object => host, :permission => 'build_hosts'),
                                     :disabled => !host.can_be_built?,
                                     :title    => _("Enable rebuild on next host boot"),
-                                    :confirm  => _("Rebuild %s on next reboot?\nThis would also delete all of its current facts and reports") % host)
+                                    :class => "btn",
+                                    'data-toggle' => 'modal',
+                                    'data-target' => '#review_before_build',
+                                    'data-remote' => review_before_build_host_path(:id => host)
+              )
             end
         ),
         if host.compute_resource_id || host.bmc_available?
@@ -328,5 +332,12 @@ module HostsHelper
   def link_status(f)
     return '' if f.object.new_record?
     '(' + (f.object.link ? _('Up') : _('Down')) + ')'
+  end
+
+  def review_build_button(form, status)
+    form.submit(_("Build"),
+                :class => "btn btn-#{status}",
+                :title => (status == 'success') ? _('Build') : _('Errors occured, build may fail')
+    )
   end
 end

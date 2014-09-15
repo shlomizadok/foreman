@@ -1,4 +1,4 @@
-<% javascript 'charts' %>
+<% javascript 'charts', 'host_show' %>
 <% title @host.to_label, icon(@host.os) + @host.to_label %>
 
 <%= host_title_actions(@host) %>
@@ -76,3 +76,4 @@
     </div>
   </div>
 </div>
+<div id="review_before_build" class="modal fade hide"></div>

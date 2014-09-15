@@ -1625,6 +1625,19 @@ end # end of context "location or organizations are not enabled"
     assert_equal "fqdn=my5name.yourdomain.net", LookupValue.find(lookup_value_id).match
   end
 
+  test 'templates_status should return true if all templates rendered' do
+    host = hosts(:one)
+    assert host.templates_status[:successful_render]
+  end
+
+  test 'templates_status should return false if template failed to render' do
+    host = hosts(:one)
+    kind = FactoryGirl.create(:template_kind)
+    config_template = FactoryGirl.create(:config_template, :template => "provision script <%= @foreman.server.status %>",:name => "My Failed Template", :template_kind => kind, :operatingsystem_ids => [host.operatingsystem_id], :environment_ids => [host.environment_id], :hostgroup_ids => [host.hostgroup_id]  )
+
+    refute host.templates_status[:successful_render]
+  end
+
   describe '#overwrite=' do
     context 'false' do
       [:false, 'false', false].each do |v|
