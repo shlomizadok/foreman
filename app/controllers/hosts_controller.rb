@@ -196,14 +196,14 @@ class HostsController < ApplicationController
   end
 
   def review_before_build
-    @host_build_status = (@host.templates_status[:successful_render] && @host.smart_proxies_status[:smart_proxies_available]) ? 'success' : 'danger'
+    @build = HostBuildStatus.new(@host)
     render :layout => false
   end
 
   def setBuild
     forward_url_options
     if @host.setBuild
-      @host.power.send(:reset) if (params[:build_reboot] && params[:build_reboot] == true)
+      @host.power.reset if (params[:build_reboot] && params[:build_reboot] == true)
       process_success :success_msg => _("Enabled %s for rebuild on next boot") % (@host), :success_redirect => :back
     else
       process_error :redirect => :back, :error_msg => _("Failed to enable %{host} for installation: %{errors}") % { :host => @host, :errors => @host.errors.full_messages }

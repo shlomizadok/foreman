@@ -297,6 +297,6 @@ module LayoutHelper
   end
 
   def modal_close(data_dismiss='modal', text=_('Close'))
-    "<button type='button' class='btn btn-default' data-dismiss='#{data_dismiss}'>#{text}</button>".html_safe
+    button_tag text, :class => 'btn btn-default', :data => { :dismiss => data_dismiss }
   end
 end

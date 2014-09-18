@@ -6,33 +6,30 @@
 
     </div>
     <div class="modal-body">
-      <div class="alert alert-<%= @host_build_status %>">
+      <div class="alert alert-<%= build_state(@build) %>">
         <p>
           <b>
-            <% if @host_build_status == 'success' %>
-              <%= icon_text('ok', _("Build checks passed, ready to build")) %>
+            <% if @build.state %>
+              <%= icon_text('ok', _('Build checks passed, ready to build')) %>
             <% else %>
-              <%= icon_text('remove', _("The following errors may prevent a successful build:")) %>
+              <%= icon_text('remove', _('The following errors may prevent a successful build:')) %>
             <% end %>
           </b>
         </p>
 
         <p>
 
-        <p><%= icon_text(@host.templates_status[:successful_render] ? 'ok' : 'remove', _('Templates')) %></p>
-        <ul class="list-group">
-          <% @host.templates_status[:status].each do |status| %>
-            <%= render :partial => "hosts/review_status", :locals => { :status => status } %>
+         <% HostBuildStatus::VALIDATION_TYPES.each do |type| %>
+            <% if @build.errors[type].any? %>
+            <p><%= _(type.to_s.capitalize) %></p>
+            <ul class="list-group">
+              <% @build.errors[type].each do |error| %>
+                <%= render :partial => 'hosts/build_review_status', :locals => { :error => error } %>
+              <% end %>
+            </ul>
+            <p>
           <% end %>
-        </ul>
-        <p>
-
-        <p><%= icon_text(@host.smart_proxies_status[:smart_proxies_available] ? 'ok' : 'remove', _('Smart proxies')) %></p>
-        <ul class="list-group">
-          <% @host.smart_proxies_status[:status].each do |status| %>
-            <%= render :partial => "hosts/review_status", :locals => { :status => status } %>
-          <% end %>
-        </ul>
+        <% end %>
       </div>
       <div class="alert alert-warning">
         <b><%= _("Rebuild %s on next reboot?") % @host %></b><br/>
@@ -40,15 +37,15 @@
       </div>
 
       <%= form_for :build, :method => :put,
-                   :url            => hash_for_setBuild_host_path(:id => @host).merge(:auth_object => @host, :permission => 'build_hosts'),
-                   :html           => { :id => "build_form" } do |form|
-      %>
+                         :url            => hash_for_setBuild_host_path(:id => @host).merge(:auth_object => @host, :permission => 'build_hosts'),
+                         :html           => { :id => "build_form" } do |form|
+        %>
         <div>
           <%= check_box_tag(:build_reboot, true, false) %> <%= _("Reboot now?") %>
         </div>
         <div class="modal-footer">
           <%= modal_close %>
-          <%= review_build_button(form, @host_build_status) %>
+          <%= review_build_button(form, build_state(@build)) %>
         </div>
       <% end %>
     </div>

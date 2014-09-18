@@ -1,7 +1,6 @@
 class Host::Managed < Host::Base
   include ReportCommon
   include Hostext::Search
-  include UnattendedHelper
 
   PROVISION_METHODS = %w[build image]
 
@@ -818,50 +817,7 @@ class Host::Managed < Host::Base
     end.compact
   end
 
-  def templates_status
-    status = []
-    if available_template_kinds.empty?
-      status << HostBuildStatus.new(false, _('No templates found for this host.'))
-      return { :successful_render => false, :status => status }
-    end
-    available_template_kinds.each do |used_template|
-      # Set instance variable for unattended_render function
-      @host = self
-      begin
-        valid_template = unattended_render(used_template.template)
-      rescue => error
-        status << HostBuildStatus.new(false, _('Cannot parse %s.') % used_template.name, error)
-      end
 
-      status << if valid_template.blank?
-                  HostBuildStatus.new(false, _('Template %s is empty.') % used_template.name)
-                else
-                  HostBuildStatus.new(true, _('Template %s rendered successfully.') % used_template.name)
-                end
-    end
-    { :successful_render => status.map(&:passed).include?(false), :status => status }
-  end
-
-  def smart_proxies_status
-    status = []
-    if smart_proxies.empty?
-      status << HostBuildStatus.new(false, _('No smart proxies found.'))
-      return { :smart_proxies_available => false, :status => status }
-    end
-    smart_proxies.each do |smart_proxy|
-      begin
-        errors = smart_proxy.refresh.errors.any?
-      rescue => error
-        status << HostBuildStatus.new(false, _('Error connecting to %s: %s.') % smart_proxy, error)
-      end
-      status << if errors
-                  HostBuildStatus.new(!errors, _('Failure deploying via smart proxy %s: %s.') % smart_proxy, errors.to_sentence)
-                else
-                  HostBuildStatus.new(true, _('%s is available.') % smart_proxy)
-                end
-    end
-    { :smart_proxies_available => statuses.map(&:passed).include?(false), :status => status }
-  end
 
   private
 

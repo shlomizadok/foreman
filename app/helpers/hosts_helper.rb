@@ -334,6 +334,10 @@ module HostsHelper
     '(' + (f.object.link ? _('Up') : _('Down')) + ')'
   end
 
+  def build_state(build)
+    build.state ? 'success' : 'danger'
+  end
+
   def review_build_button(form, status)
     form.submit(_("Build"),
                 :class => "btn btn-#{status}",
