@@ -809,58 +809,58 @@ class Host::Managed < Host::Base
               TemplateKind.all
             end
 
-    templates = kinds.map do |kind|
-      ConfigTemplate.find_template({:kind => kind.name,
-                                    :operatingsystem_id => self.operatingsystem_id,
-                                    :hostgroup_id => self.hostgroup_id,
-                                    :environment_id => self.environment_id
+    kinds.map do |kind|
+      ConfigTemplate.find_template({ :kind               => kind.name,
+                                     :operatingsystem_id => operatingsystem_id,
+                                     :hostgroup_id       => hostgroup_id,
+                                     :environment_id     => environment_id
                                    })
     end.compact
   end
 
   def templates_status
-    statuses = []
-    if self.available_template_kinds.empty?
-      statuses << StatusReport.new(false, _('No templates found for this host.'))
-      return {:successful_render => false, :statuses => statuses}
+    status = []
+    if available_template_kinds.empty?
+      status << HostBuildStatus.new(false, _('No templates found for this host.'))
+      return { :successful_render => false, :status => status }
     end
-    self.available_template_kinds.each do | used_template |
+    available_template_kinds.each do |used_template|
+      # Set instance variable for unattended_render function
+      @host = self
       begin
-        # Set instance variable for unattended_render function
-        @host = self
         valid_template = unattended_render(used_template.template)
-        if valid_template.blank?
-          statuses << StatusReport.new(false, _('Template %s is empty.') % used_template.name )
-        else
-          statuses << StatusReport.new(true, _('Template %s rendered successfuly.') % used_template.name )
-        end
       rescue => error
-        statuses << StatusReport.new(false, _('Cannot parse %s.') % used_template.name, error )
+        status << HostBuildStatus.new(false, _('Cannot parse %s.') % used_template.name, error)
       end
+
+      status << if valid_template.blank?
+                  HostBuildStatus.new(false, _('Template %s is empty.') % used_template.name)
+                else
+                  HostBuildStatus.new(true, _('Template %s rendered successfully.') % used_template.name)
+                end
     end
-    successful_render = (statuses.map(&:passed).include? false) ? false : true
-    {:successful_render => successful_render, :statuses => statuses}
+    { :successful_render => status.map(&:passed).include?(false), :status => status }
   end
 
   def smart_proxies_status
-    statuses = []
-    if self.smart_proxies.empty?
-      statuses << StatusReport.new(false, _('No smart proxies found.'))
-      return {:smart_proxies_available => false, :statuses => statuses}
+    status = []
+    if smart_proxies.empty?
+      status << HostBuildStatus.new(false, _('No smart proxies found.'))
+      return { :smart_proxies_available => false, :status => status }
     end
-    self.smart_proxies.each do | smart_proxy |
+    smart_proxies.each do |smart_proxy|
       begin
-        if ProxyAPI::Features.new({:url => smart_proxy.url}).features.empty?
-          statuses << StatusReport.new(false, _('No features found on %s.') % smart_proxy )
-        else
-          statuses << StatusReport.new(true, _('%s is available.') % smart_proxy )
-        end
+        errors = smart_proxy.refresh.errors.any?
       rescue => error
-        statuses << StatusReport.new(false, _('Error connecting to %s.') % smart_proxy, error )
+        status << HostBuildStatus.new(false, _('Error connecting to %s: %s.') % smart_proxy, error)
       end
+      status << if errors
+                  HostBuildStatus.new(!errors, _('Failure deploying via smart proxy %s: %s.') % smart_proxy, errors.to_sentence)
+                else
+                  HostBuildStatus.new(true, _('%s is available.') % smart_proxy)
+                end
     end
-    smart_proxies_available = (statuses.map(&:passed).include? false) ? false : true
-    {:smart_proxies_available => smart_proxies_available, :statuses => statuses}
+    { :smart_proxies_available => statuses.map(&:passed).include?(false), :status => status }
   end
 
   private

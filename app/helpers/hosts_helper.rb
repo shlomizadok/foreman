@@ -337,7 +337,7 @@ module HostsHelper
   def review_build_button(form, status)
     form.submit(_("Build"),
                 :class => "btn btn-#{status}",
-                :title => (status == 'success') ? _('Build') : _('Errors occured, build may fail')
+                :title => (status == 'success') ? _('Build') : _('Errors occurred, build may fail')
     )
   end
 end

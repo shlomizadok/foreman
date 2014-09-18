@@ -197,9 +197,7 @@ class HostsController < ApplicationController
 
   def review_before_build
     @host_build_status = (@host.templates_status[:successful_render] && @host.smart_proxies_status[:smart_proxies_available]) ? 'success' : 'danger'
-    respond_to do | format |
-      format.html { render :layout => false }
-    end
+    render :layout => false
   end
 
   def setBuild
@@ -516,10 +514,10 @@ class HostsController < ApplicationController
   end
 
   def template_used
-    host = Host.new(params[:host])
+    host      = Host.new(params[:host])
     templates = host.available_template_kinds(params[:provisioning])
     return not_found if templates.empty?
-    render :partial => "provisioning", :locals => {:templates => templates}
+    render :partial => 'provisioning', :locals => { :templates => templates }
   end
 
   private
@@ -535,8 +533,7 @@ class HostsController < ApplicationController
         :view
       when 'puppetrun', 'multiple_puppetrun', 'update_multiple_puppetrun'
         :puppetrun
-      when 'setBuild', 'cancelBuild', 'multiple_build', 'submit_multiple_build',
-          'review_before_build'
+      when 'setBuild', 'cancelBuild', 'multiple_build', 'submit_multiple_build', 'review_before_build'
         :build
       when 'power'
         :power

@@ -364,21 +364,3 @@ table tr td:last-child {
 .config_group, .selected_config_group   {
   min-height: 30px;
 }
-
-#review_before_build {
-  #build_form {
-    padding: 0px;
-    border: none;
-    .modal-footer {
-      border-top: none;
-      padding: 0px;
-    }
-  }
-  .list-group-item {
-    background: transparent;
-    border: none;
-  }
-  code {
-    white-space: normal;
-  }
-}
