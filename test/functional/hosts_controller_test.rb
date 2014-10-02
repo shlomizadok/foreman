@@ -111,7 +111,7 @@ class HostsControllerTest < ActionController::TestCase
     Host.any_instance.stubs(:setBuild).returns(true)
     @request.env['HTTP_REFERER'] = hosts_path
 
-    get :setBuild, {:id => @host.name}, set_session_user
+    put :setBuild, {:id => @host.name}, set_session_user
     assert_response :found
     assert_redirected_to hosts_path
     assert_not_nil flash[:notice]
@@ -122,11 +122,44 @@ class HostsControllerTest < ActionController::TestCase
     Host.any_instance.stubs(:setBuild).returns(false)
     @request.env['HTTP_REFERER'] = hosts_path
 
-    get :setBuild, {:id => @host.name}, set_session_user
+    put :setBuild, {:id => @host.name}, set_session_user
     assert_response :found
     assert_redirected_to hosts_path
     assert_not_nil flash[:error]
     assert flash[:error] =~ /Failed to enable #{@host} for installation/
+  end
+
+  test 'when host is saved after setBuild and reboot was requested, the flash should inform it' do
+    Host.any_instance.stubs(:setBuild).returns(true)
+    @request.env['HTTP_REFERER'] = hosts_path
+
+    # Setup a power mockup
+    class PowerShmocker
+      def reset
+        true
+      end
+    end
+    Host::Managed.any_instance.stubs(:power).returns(PowerShmocker.new())
+
+    put :setBuild, {:id => @host.name, :host => {:build => '1'}}, set_session_user
+    assert_response :found
+    assert_redirected_to hosts_path
+    assert_not_nil flash[:notice]
+    assert flash[:notice] == "Enabled #{@host} for reboot and rebuild"
+  end
+
+  test 'when host is saved after setBuild, reboot requested and reboot failed, the flash should inform it' do
+    Host.any_instance.stubs(:setBuild).returns(true)
+    @request.env['HTTP_REFERER'] = hosts_path
+
+    put :setBuild, {:id => @host.name, :host => {:build => '1'}}, set_session_user
+    assert_raise Foreman::Exception do
+      @host.power.reset
+    end
+    assert_response :found
+    assert_redirected_to hosts_path
+    assert_not_nil flash[:notice]
+    assert flash[:notice] == "Enabled #{@host} for rebuild on next boot"
   end
 
   def test_clone
@@ -779,6 +812,13 @@ class HostsControllerTest < ActionController::TestCase
     host.reload
     refute host.uuid
     refute host.compute_resource_id
+  end
+
+  test '#review_before_build' do
+    HostBuildStatus.any_instance.stubs(:host_status).returns(true)
+    get :review_before_build, {:id => @host.name}, set_session_user
+    assert_response :success
+    assert_template 'review_before_build'
   end
 
   private

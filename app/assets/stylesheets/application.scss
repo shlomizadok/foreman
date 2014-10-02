@@ -356,6 +356,20 @@ table tr td:last-child {
   margin: 20% 30% 0 40%;
 }
 
+.large-spinner-placeholder {
+  width: 256px;
+  height: 256px;
+  background: url('large_spinner.gif');
+  display: none;
+  &.visible {
+    display: block;
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    right: 50%;
+  }
+}
+
 .exit-fullscreen{
   position: absolute;
   top: 30px;

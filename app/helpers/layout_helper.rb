@@ -158,9 +158,9 @@ module LayoutHelper
         label   = label.present? ? label_tag(attr, "#{label}#{required_mark}".html_safe , :class => "col-md-2 control-label") : ''
 
         label.html_safe +
-           content_tag(:div, :class => size_class) do
-             yield.html_safe + help_block.html_safe
-           end.html_safe + help_inline.html_safe
+          content_tag(:div, :class => size_class) do
+            yield.html_safe + help_block.html_safe
+          end.html_safe + help_inline.html_safe
       end.html_safe
     end
   end
@@ -185,7 +185,7 @@ module LayoutHelper
     end
   end
 
-  def form_to_submit_id f
+  def form_to_submit_id(f)
     object = f.object.respond_to?(:to_model) ? f.object.to_model : f.object
     key = object ? (object.persisted? ? :update : :create) : :submit
     model = if object.class.respond_to?(:humanize_class_name)
@@ -198,7 +198,7 @@ module LayoutHelper
     "aid_#{key}_#{model}"
   end
 
-  def submit_or_cancel f, overwrite = false, args = { }
+  def submit_or_cancel(f, overwrite = false, args = { })
     args[:cancel_path] ||= send("#{controller_name}_path")
     content_tag(:div, :class => "clearfix") do
       content_tag(:div, :class => "form-actions") do
@@ -211,7 +211,7 @@ module LayoutHelper
     end
   end
 
-  def base_errors_for obj
+  def base_errors_for(obj)
     unless obj.errors[:base].blank?
       alert :header => _("Unable to save"),
             :class  => 'alert-danger base in fade',
@@ -219,7 +219,7 @@ module LayoutHelper
     end
   end
 
-  def popover title, msg, options = {}
+  def popover(title, msg, options = {})
     link_to icon_text("info-sign", title), {}, { :remote => true, :rel => "popover", :data => {"content" => msg, "original-title" => title} }.merge(options)
   end
 
@@ -276,7 +276,7 @@ module LayoutHelper
     (content_tag(:i,"", :class=>"glyphicon glyphicon-#{i} #{opts[:class]}") + " " + text).html_safe
   end
 
-  def alert opts = {}
+  def alert(opts = {})
     opts[:close]  = true if opts[:close].nil?
     opts[:header] ||= _("Warning!")
     opts[:text]   ||= _("Alert")
@@ -291,12 +291,12 @@ module LayoutHelper
     end
   end
 
-  def alert_header text
+  def alert_header(text)
     "<h4 class='alert-heading'>#{text}</h4>".html_safe
   end
 
-  def alert_close
-    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>'.html_safe
+  def alert_close(data_dismiss='alert')
+    "<button type='button' class='close' data-dismiss='#{data_dismiss}' aria-hidden='true'>&times;</button>".html_safe
   end
 
   def trunc(text, length = 32)
@@ -305,4 +305,7 @@ module LayoutHelper
     content_tag(:span, truncate(text, :length => length), options).html_safe
   end
 
+  def modal_close(data_dismiss='modal', text=_('Close'))
+    button_tag(text, :class => 'btn btn-default', :data => { :dismiss => data_dismiss })
+  end
 end

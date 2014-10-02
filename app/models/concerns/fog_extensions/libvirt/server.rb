@@ -25,8 +25,7 @@ module FogExtensions
       end
 
       def reset
-        poweroff
-        start
+        service.vm_action(uuid, :reset)
       end
 
       def vm_description
