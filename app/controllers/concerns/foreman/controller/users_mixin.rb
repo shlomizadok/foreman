@@ -29,7 +29,7 @@ module Foreman::Controller::UsersMixin
                              :locale,
                              :default_organization_id,
                              :default_location_id,
-                             :mail_notification_ids,
+                             :user_mail_notifications_attributes,
                              :mail_enabled)
 
         # Remove locale from the session when set to "Browser Locale" and editing self

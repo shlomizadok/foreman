@@ -4,19 +4,21 @@
 # weekly or monthly.  For system notifications, set subscriptable to false.
 
 notifications = [
-  {:name             => 'Puppet Daily Summary',
-   :title            => :puppet_daily_summary,
-   :description      => 'A daily summary of eventful puppet reports',
-   :mailer           => 'HostMailer',
-   :method           => 'summary',
-   :default_interval => 'daily'
+  {:name              => 'Puppet Daily Summary',
+   :title             => :puppet_daily_summary,
+   :description       => 'A daily summary of eventful puppet reports',
+   :mailer            => 'HostMailer',
+   :method            => 'summary',
+   :subscription_type => 'report',
+   :default_interval  => 'daily'
   },
 
- {:name             => 'Puppet Error State',
-  :title            => :puppet_error_state,
-  :description      => 'A notification when a host reports a puppet error',
-  :mailer           => 'HostMailer',
-  :method           => 'error_state'
+ {:name               => 'Puppet Error State',
+  :title              => :puppet_error_state,
+  :description        => 'A notification when a host reports a puppet error',
+  :mailer             => 'HostMailer',
+  :method             => 'error_state',
+  :subscription_type  => 'error',
  },
 
  {:name             => 'Welcome E-mail',

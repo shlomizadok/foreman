@@ -2,9 +2,10 @@ class MailNotification < ActiveRecord::Base
   include Authorizable
 
   INTERVALS = %w(daily weekly monthly)
+  SUBSCRIPTION_TYPES = %w(error report)
 
   attr_accessible :description, :title, :mailer, :method, :name, :default_interval,
-                  :subscriptable
+                  :subscriptable, :subscription_type
 
   has_many :user_mail_notifications, :dependent => :destroy
   has_many :users, :through => :user_mail_notifications
@@ -16,9 +17,11 @@ class MailNotification < ActiveRecord::Base
 
   scope :subscriptable, lambda { where(:subscriptable => true) }
 
+
   validates :name, :presence => true, :uniqueness => true
   validates :title, :presence => true, :uniqueness => true
   validates :default_interval, :inclusion => { :in => INTERVALS }, :allow_blank => true
+  validates :subscription_type, :inclusion => { :in => SUBSCRIPTION_TYPES }, :allow_blank => true
   validates :mailer, :presence => true
   validates :method, :presence => true
 
