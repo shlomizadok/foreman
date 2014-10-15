@@ -287,7 +287,7 @@ class User < ActiveRecord::Base
   end
 
   def recipients_for(notification)
-    self.receives?(notification) ? [mail] : []
+    self.receives?(notification) ? [self] : []
   end
 
   def receives?(notification)

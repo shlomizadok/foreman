@@ -5,7 +5,7 @@ module Api
 
       before_filter :find_resource, :only => %w{show}
 
-      api :GET, "/mail_notifications/", N_("List of mail_notifications")
+      api :GET, "/mail_notifications/", N_("List of mail notifications")
       param_group :search_and_pagination, ::Api::V2::BaseController
 
       def index

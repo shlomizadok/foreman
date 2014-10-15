@@ -1,2 +1,2 @@
 object @mail_notification
-attributes :id, :title, :name, :description, :default_interval
+attributes :id, :name, :description, :subscription_type

@@ -1,35 +1,32 @@
 # To add a new mail notification, you need at a minimum of name, title, mailer,
-# and method, and need to define the corresponding ActionMailer and method.  To
-# leverage the default cron jobs, ensure to set the default_interval to daily,
-# weekly or monthly.  For system notifications, set subscriptable to false.
+# and method, and need to define the corresponding ActionMailer and method.
+# For system notifications, set subscriptable to false.  For recurring reports,
+# set subscription_type to 'report', and for ad hoc mails, use 'alert'
 
 notifications = [
-  {:name              => 'Puppet Daily Summary',
-   :title             => :puppet_daily_summary,
-   :description       => 'A daily summary of eventful puppet reports',
+  {:name              => :puppet_summary,
+   :description       => N_('A summary of eventful puppet reports'),
    :mailer            => 'HostMailer',
    :method            => 'summary',
-   :subscription_type => 'report',
-   :default_interval  => 'daily'
+   :subscription_type => 'report'
   },
 
- {:name               => 'Puppet Error State',
-  :title              => :puppet_error_state,
-  :description        => 'A notification when a host reports a puppet error',
-  :mailer             => 'HostMailer',
-  :method             => 'error_state',
-  :subscription_type  => 'error',
- },
+  {:name              => :puppet_error_state,
+   :description       => N_('A notification when a host reports a puppet error'),
+   :mailer            => 'HostMailer',
+   :method            => 'error_state',
+   :subscription_type => 'alert'
+  },
 
- {:name             => 'Welcome E-mail',
-  :title            => :welcome,
-  :description      => 'A mail a user receives upon account creation',
-  :mailer           => 'UserMailer',
-  :method           => 'welcome',
-  :subscriptable    => false
+  {:name              => :welcome,
+   :description       => N_('A mail a user receives upon account creation'),
+   :mailer            => 'UserMailer',
+   :method            => 'welcome',
+   :subscriptable     => false
  }
 ]
 
 notifications.each do |notification|
-  MailNotification.find_or_create_by_title(notification)
+  MailNotification.find_or_create_by_name(notification)
 end
+

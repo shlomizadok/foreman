@@ -7,19 +7,13 @@ class UserMailNotification < ActiveRecord::Base
   validates :user, :presence => true
   validates :mail_notification, :presence => true
 
-  scope :daily, lambda { where(:interval => 'daily') }
-  scope :weekly,  lambda { where(:interval => 'weekly') }
-  scope :monthly, lambda { where(:interval => 'monthly') }
-
-  before_save :set_interval
+  scope :daily, lambda { where(:interval => 'Daily') }
+  scope :weekly,  lambda { where(:interval => 'Weekly') }
+  scope :monthly, lambda { where(:interval => 'Monthly') }
 
   def deliver(options = {})
     options[:time] = last_sent if last_sent
     mail_notification.deliver(options.merge(:user => user))
     update_attribute(:last_sent, Time.now)
-  end
-
-  def set_interval
-    self.interval = mail_notification.default_interval if interval.blank?
   end
 end

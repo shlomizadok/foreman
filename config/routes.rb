@@ -1,7 +1,7 @@
 require 'api_constraints'
 
 Foreman::Application.routes.draw do
-  resources :mail_notifications, :only => [:index, :show] do
+  resources :mail_notifications, :only => [] do
     collection do
       get 'auto_complete_search'
     end

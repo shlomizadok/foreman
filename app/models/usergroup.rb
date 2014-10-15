@@ -43,7 +43,7 @@ class Usergroup < ActiveRecord::Base
   end
 
   def recipients_for(notification)
-    all_users.collect { |user| user.mail if user.receives? notification }.compact.sort.uniq
+    all_users.collect { |user| user if user.receives?(notification) }.compact.sort.uniq
   end
 
   # This methods retrieves all users in a usergroup

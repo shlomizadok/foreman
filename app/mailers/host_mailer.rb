@@ -1,57 +1,20 @@
 require 'uri'
 
-class HostMailer < ActionMailer::Base
+class HostMailer < ApplicationMailer
   helper :reports
 
   default :content_type => "text/html", :from => Setting[:email_reply_address] || "noreply@foreman.example.org"
+
   # sends out a summary email of hosts and their metrics (e.g. how many changes failures etc).
-
-
   def summary(options = {})
-    # currently we send to all registered users or to the administrator (if LDAP is disabled).
-    # TODO add support to host / group based emails.
-
-    # options our host list if required
-    filter = []
-
-    set_url
-
-    if options[:env]
-      hosts = envhosts = options[:env].hosts
-      raise (_("unable to find any hosts for puppet environment=%s") % options[:env]) if envhosts.size == 0
-      filter << "Environment=#{options[:env].name}"
-    end
-    name,value = options[:factname],options[:factvalue]
-    if name and value
-      facthosts = Host.search_for("facts.#{name}=#{value}")
-      raise (_("unable to find any hosts with the fact name=%{name} and value=%{value}") % { :name => name, :value => value }) if facthosts.empty?
-      filter << "Fact #{name}=#{value}"
-      # if environment and facts are defined together, we use a merge of both
-      hosts = envhosts.empty? ? facthosts : envhosts & facthosts
-    end
-
-    if hosts.empty?
-      # print out an error if we couldn't find any hosts that match our request
-      raise ::Foreman::Exception.new(N_("unable to find any hosts that match your request")) if options[:env] or options[:factname]
-      # we didnt define a filter, use all hosts instead
-      if options[:user]
-        hosts = Host::Managed.authorized_as(options[:user], :view_hosts, Host)
-      else
-        hosts = Host::Managed
-      end
-    end
-
-    if options[:user]
-      email = options[:user].mail
-    else
-      email = options[:email] || Setting[:administrator]
-    end
-
-    raise ::Foreman::Exception.new(N_("unable to find recipients")) if email.empty?
+    raise ::Foreman::Exception.new(N_("Must specify a user with an e-mail")) unless (user=options[:user]) && user.mail
+    hosts = Host::Managed.authorized_as(user, :view_hosts, Host)
     time = options[:time] || 1.day.ago
     host_data = Report.summarise(time, hosts.all).sort
+
     total_metrics = load_metrics(host_data)
     total = 0; total_metrics.values.each { |v| total += v }
+
     subject = _("Summary Puppet report from Foreman - F:%{failed} R:%{restarted} S:%{skipped} A:%{applied} FR:%{failed_restarts} T:%{total}") % {
       :failed => total_metrics["failed"],
       :restarted => total_metrics["restarted"],
@@ -60,12 +23,16 @@ class HostMailer < ActionMailer::Base
       :failed_restarts => total_metrics["failed_restarts"],
       :total => total
     }
+
     @hosts = host_data
     @timerange = time
     @out_of_sync = hosts.out_of_sync
     @disabled = hosts.alerts_disabled
-    @filter = filter
-    mail(:to   => email,
+
+    set_url
+    set_locale_for user
+
+    mail(:to   => user.mail,
          :from => Setting["email_reply_address"],
          :subject => subject,
          :date => Time.now )
@@ -73,11 +40,12 @@ class HostMailer < ActionMailer::Base
 
   def error_state(report)
     host = report.host
-    email = host.owner.recipients_for(:puppet_error_state) if SETTINGS[:login] && host.owner.present?
-    raise ::Foreman::Exception.new(N_("unable to find recipients")) if email.empty?
+    owners = host.owner.recipients_for(:puppet_error_state)
+    raise ::Foreman::Exception.new(N_("unable to find recipients")) if owners.empty?
     @report = report
     @host = host
-    mail(:to => email, :subject => (_("Puppet error on %s") % host.to_label))
+
+    group_mail(owners, :subject => (_("Puppet error on %s") % host.to_label))
   end
 
   private

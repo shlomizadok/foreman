@@ -37,19 +37,17 @@
     </div>
 
     <div class='tab-pane' id='mail_preferences'>
-      <%= checkbox_f f, :mail_enabled %> 
+      <%= field_set_tag _("General") do %>
+        <%= checkbox_f f, :mail_enabled %>
+      <% end %>
       <% if @user.new_record? %>
         <div class="alert alert-block alert-warning">
           <p><strong><%= _("Notice") %></strong> <%= _("Please save the user first before assigning mail notifications.") %></p>
         </div>
       <% else %>
-        <% MailNotification::SUBSCRIPTION_TYPES.each do |type| %>
-          <%= field_set_tag _("Subscribe to #{type.pluralize}") do %>
-            <%= f.fields_for :user_mail_notifications do |mail_form| %>
-              <% if mail_form.object.mail_notification.subscription_type == type %>
-                <%= render :partial => "users/#{type}_mail_notifications", :locals => { :f => mail_form }  %>
-              <% end %>
-            <% end %>
+        <%= field_set_tag _("Notifications") do %>
+          <%= f.fields_for :user_mail_notifications do |mail_form| %>
+            <%= render :partial => "users/mail_notifications", :locals => { :f => mail_form }  %>
           <% end %>
         <% end %>
       <% end %>

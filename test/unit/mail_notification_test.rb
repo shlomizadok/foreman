@@ -4,7 +4,7 @@ class MailNotificationTest < ActiveSupport::TestCase
 
   test "can find notification as hash key" do
     mailer = FactoryGirl.create(:mail_notification)
-    assert_equal MailNotification[mailer.title], mailer
+    assert_equal MailNotification[mailer.name], mailer
   end
 
   test "user with mail disabled doesn't get mail" do
