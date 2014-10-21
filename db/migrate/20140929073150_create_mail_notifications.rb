@@ -2,7 +2,6 @@ class CreateMailNotifications < ActiveRecord::Migration
   def change
     create_table :mail_notifications do |t|
       t.string :name
-      t.string :title
       t.string :description
       t.string :mailer
       t.string :method
