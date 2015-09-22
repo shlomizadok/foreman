@@ -2,10 +2,17 @@ class ReportImporter
   delegate :logger, :to => :Rails
   attr_reader :report
 
+  # When writing your own Report importer, provide feature(s) of authorized Smart Proxies
   def self.authorized_smart_proxy_features
-    # When writing your own Report importer, provide feature(s) of authorized Smart Proxies
-    Rails.logger.debug("Importer #{self} does not implement authorized_smart_proxy_features.")
-    []
+    @authorized_smart_proxy_features ||= []
+  end
+
+  def self.register_smart_proxy_feature(feature)
+    @authorized_smart_proxy_features = (authorized_smart_proxy_features + [ feature ]).uniq
+  end
+
+  def self.unregister_smart_proxy_feature(feature)
+    @authorized_smart_proxy_features -= [ feature ]
   end
 
   def self.import(raw, proxy_id = nil)

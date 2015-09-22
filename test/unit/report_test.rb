@@ -6,6 +6,26 @@ class ReportTest < ActiveSupport::TestCase
     @report = ConfigReport.import read_json_fixture("report-skipped.json")
   end
 
+  test "additional features can be registered if it's uniq" do
+    original = ReportImporter.authorized_smart_proxy_features
+    ReportImporter.register_smart_proxy_feature('Chef')
+    new = ReportImporter.authorized_smart_proxy_features
+    added = new - original
+    assert_include(added, 'Chef')
+    assert_equal 1, added.size
+
+    ReportImporter.register_smart_proxy_feature('Chef')
+    new = ReportImporter.authorized_smart_proxy_features
+    added = new - original
+    assert_include(added, 'Chef')
+    assert_equal 1, added.size
+
+    ReportImporter.unregister_smart_proxy_feature('Chef')
+    new = ReportImporter.authorized_smart_proxy_features
+    added = new - original
+    assert_equal 0, added.size
+  end
+
   test "it should true on error? if there were errors" do
     @report.status={"applied" => 92, "restarted" => 300, "failed" => 4, "failed_restarts" => 12, "skipped" => 3, "pending" => 0}
     assert @report.error?
