@@ -37,8 +37,10 @@ class ReportImporter
     logger.info "processing report for #{name}"
     logger.debug { "Report: #{raw.inspect}" }
     create_report_and_logs
-    logger.info("Imported report for #{name} in #{(Time.now - start_time).round(2)} seconds")
-    host.refresh_statuses
+    if report.persisted?
+      logger.info("Imported report for #{name} in #{(Time.now - start_time).round(2)} seconds")
+      host.refresh_statuses
+    end
   end
 
   private
