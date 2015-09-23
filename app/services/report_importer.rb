@@ -84,7 +84,7 @@ class ReportImporter
   end
 
   def report_status
-    ReportStatusCalculator.new(:counters => raw['status']).calculate
+    ConfigReportStatusCalculator.new(:counters => raw['status']).calculate
   end
 
   def notify_on_report_error(mail_error_state)
