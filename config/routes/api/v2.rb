@@ -294,6 +294,7 @@ Foreman::Application.routes.draw do
           put :refresh, :on => :member
           get :version, :on => :member
           get :logs, :on => :member
+          get :statuses, :on => :member
           post :import_puppetclasses, :on => :member
           resources :environments, :only => [] do
             post :import_puppetclasses, :on => :member
